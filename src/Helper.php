@@ -14,11 +14,11 @@ class Helper {
     const KEY_CONFIG_INI_FILE = "config_ini_file";
     const KEY_CONFIG_INI_DATA = "config_ini_data";
 
-    private static function setObject($key, $value) {
+    protected static function setObject($key, $value) {
         self::$data[$key] = $value;
     }
 
-    private static function getObject($key) {
+    protected static function getObject($key) {
         return isset(self::$data[$key]) ? self::$data[$key] : NULL;
     }
 
