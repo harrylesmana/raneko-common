@@ -13,6 +13,8 @@ class Helper {
 
     const KEY_COMMON_CONFIG_INI_FILE = "raneko-common_config_ini_file";
     const KEY_COMMON_CONFIG_INI_DATA = "raneko-common_config_ini_data";
+    const TRANSFER_ARRAY_OPT_NULL_IF_NOT_FOUND = "raneko-common_transfer_opt_null_if_not_found";
+    const TRANSFER_ARRAY_OPT_REMOVE_IF_NOT_FOUND = "raneko-common_transfer_opt_remove_if_not_found";
 
     protected static function setObject($key, $value) {
         self::$data[$key] = $value;
@@ -103,6 +105,40 @@ class Helper {
             }
         }
         return $config;
+    }
+
+    /**
+     * Transfer Key & Value from one array to another array following given map and options.
+     * @param array $sourceArray
+     * @param array $mapArray Map of the Source Key is mapped to which Target Key. Non associative array element will be treated as if the Source Key is the same as the Target Key.
+     * @param array $option
+     */
+    public static function transferArray($sourceArray, $mapArray, $option = array(self::TRANSFER_ARRAY_OPT_NULL_IF_NOT_FOUND)) {
+        $result = array();
+
+        /* Normalizing the map from mix of associate and non-associative to be fully associative */
+        $normalizedMap = array();
+        foreach ($mapArray as $sourceKey => $targetKey) {
+            $newTargetKey = $targetKey;
+            $newSourceKey = $sourceKey;
+            if (is_numeric($sourceKey)) {
+                $sourceKey = $targetKey;
+            }
+            $normalizedMap[$sourceKey] = $targetKey;
+            /* Initiate the target array's keys */
+            $result[$targetKey] = NULL;
+        }
+
+        /* Run through each element in the Source Array */
+        foreach ($sourceArray as $sourceKey => $sourceValue) {
+            /* Check if this source key is mapped to a target key, if not it means this source key is not desired */
+            $targetKey = isset($normalizedMap[$sourceKey]) ? $normalizedMap[$sourceKey] : NULL;
+            if (!is_null($targetKey)) {
+                $result[$targetKey] = $sourceValue;
+            }
+        }
+
+        return $result;
     }
 
 }
