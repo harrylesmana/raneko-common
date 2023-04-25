@@ -11,3 +11,4 @@ require_once(__DIR__ . "/../vendor/autoload.php");
 error_reporting(E_ALL);
 
 \Raneko\Common\Helper::setConfigIni(__DIR__ . DIRECTORY_SEPARATOR . "app.ini");
+\Raneko\Common\Helper::setRootPath(__DIR__ . "/..");
