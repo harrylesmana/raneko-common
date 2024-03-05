@@ -14,16 +14,24 @@ class Helper {
     const KEY_GLOBAL_ROOT_PATH = "raneko-common_global_root_path";
     const KEY_COMMON_CONFIG_INI_FILE = "raneko-common_config_ini_file";
     const KEY_COMMON_CONFIG_INI_DATA = "raneko-common_config_ini_data";
+    const KEY_COMMON_ENVIRONMENT = "raneko-common_global_environment";
     const TRANSFER_ARRAY_OPT_null_IF_NOT_FOUND = "raneko-common_transfer_opt_null_if_not_found";
     const TRANSFER_ARRAY_OPT_REMOVE_IF_NOT_FOUND = "raneko-common_transfer_opt_remove_if_not_found";
     const DEFAULT_VALUE_VERSION = "0.0.0";
+    const DEFAULT_VALUE_ENVIRONMENT = "production";
 
     protected static function setObject($key, $value) {
         self::$data[$key] = $value;
     }
 
-    protected static function getObject($key) {
-        return isset(self::$data[$key]) ? self::$data[$key] : null;
+    /**
+     * Get the stored object.
+     * @param string $key
+     * @param mixed $defaultValue
+     * @return mixed|null
+     */
+    protected static function getObject($key, $defaultValue = null) {
+        return isset(self::$data[$key]) ? self::$data[$key] : $defaultValue;
     }
 
     /**
@@ -65,7 +73,7 @@ class Helper {
     }
 
     /**
-     * Set the configuration file.
+     * Set the configuration file (INI).
      * @param string $file Absolute path to the INI configuration file.
      * @since 2022-09-21
      */
@@ -92,16 +100,17 @@ class Helper {
     /**
      * Get configuration from the pre-configured INI file.
      * @param string $key
+     * @param string|null $defaultValue Default value in case the configuration is not found
      * @return mixed
      */
-    public static function getConfig($key = null) {
+    public static function getConfig($key = null, $defaultValue = null) {
         $config = null;
 
         /* INI version */
         $configData = self::getObject(self::KEY_COMMON_CONFIG_INI_DATA);
         if (!is_null($configData)) {
             if (!is_null($key)) {
-                $config = isset($configData[$key]) ? $configData[$key] : null;
+                $config = isset($configData[$key]) ? $configData[$key] : $defaultValue;
             } else {
                 $config = $configData;
             }
@@ -157,7 +166,7 @@ class Helper {
             $firstLine = $stringfromfile[0]; //get the string from the array
             $explodedstring = explode("/", $firstLine, 3); //seperate out by the "/" in the string
             $branchname = $explodedstring[2]; //get the one that is always the branch name        
-            return $branchname;
+            return trim($branchname);
         } else {
             return self::DEFAULT_VALUE_VERSION;
         }
@@ -182,5 +191,39 @@ class Helper {
      */
     public static function getRootPath() {
         return self::getObject(self::KEY_GLOBAL_ROOT_PATH);
+    }
+
+    /**
+     * Set the environment type.
+     * @param string $environment dev|development|prod|production
+     */
+    public static function setEnvironment($environment) {
+        self::setObject(self::KEY_COMMON_ENVIRONMENT, $environment);
+    }
+
+    /**
+     * Get the environment type.
+     * @return string By default will return "production" if it's not previously set.
+     */
+    public static function getEnvironment() {
+        $environment = self::getObject(self::KEY_COMMON_ENVIRONMENT);
+        if(is_null($environment)) {
+            trigger_error("Environment is not set, consider setting it through setEnvironment()", E_USER_WARNING);
+        }
+        return is_null($environment) ? self::DEFAULT_VALUE_ENVIRONMENT : $environment;
+    }
+
+    /**
+     * Check whether environment type is development or production.
+     * Only environment "dev" or "development" will result in false.
+     * @return bool
+     */
+    public static function isEnvironmentProduction() {
+        $environment = strtolower(self::getEnvironment());
+        if (in_array($environment, array("dev", "development"))) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }
