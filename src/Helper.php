@@ -14,7 +14,7 @@ class Helper {
     const KEY_GLOBAL_ROOT_PATH = "raneko-common_global_root_path";
     const KEY_COMMON_CONFIG_INI_FILE = "raneko-common_config_ini_file";
     const KEY_COMMON_CONFIG_INI_DATA = "raneko-common_config_ini_data";
-    const TRANSFER_ARRAY_OPT_NULL_IF_NOT_FOUND = "raneko-common_transfer_opt_null_if_not_found";
+    const TRANSFER_ARRAY_OPT_null_IF_NOT_FOUND = "raneko-common_transfer_opt_null_if_not_found";
     const TRANSFER_ARRAY_OPT_REMOVE_IF_NOT_FOUND = "raneko-common_transfer_opt_remove_if_not_found";
     const DEFAULT_VALUE_VERSION = "0.0.0";
 
@@ -23,7 +23,7 @@ class Helper {
     }
 
     protected static function getObject($key) {
-        return isset(self::$data[$key]) ? self::$data[$key] : NULL;
+        return isset(self::$data[$key]) ? self::$data[$key] : null;
     }
 
     /**
@@ -82,7 +82,7 @@ class Helper {
 
     /**
      * Get the current INI configuration file location.
-     * @return string|NULL Absolute path of the INI configuration file.
+     * @return string|null Absolute path of the INI configuration file.
      * @since 2022-09-21
      */
     public static function getConfigIni() {
@@ -94,14 +94,14 @@ class Helper {
      * @param string $key
      * @return mixed
      */
-    public static function getConfig($key = NULL) {
-        $config = NULL;
+    public static function getConfig($key = null) {
+        $config = null;
 
         /* INI version */
         $configData = self::getObject(self::KEY_COMMON_CONFIG_INI_DATA);
         if (!is_null($configData)) {
             if (!is_null($key)) {
-                $config = isset($configData[$key]) ? $configData[$key] : NULL;
+                $config = isset($configData[$key]) ? $configData[$key] : null;
             } else {
                 $config = $configData;
             }
@@ -115,7 +115,7 @@ class Helper {
      * @param array $mapArray Map of the Source Key is mapped to which Target Key. Non associative array element will be treated as if the Source Key is the same as the Target Key.
      * @param array $option
      */
-    public static function transferArray($sourceArray, $mapArray, $option = array(self::TRANSFER_ARRAY_OPT_NULL_IF_NOT_FOUND)) {
+    public static function transferArray($sourceArray, $mapArray, $option = array(self::TRANSFER_ARRAY_OPT_null_IF_NOT_FOUND)) {
         $result = array();
 
         /* Normalizing the map from mix of associate and non-associative to be fully associative */
@@ -128,13 +128,13 @@ class Helper {
             }
             $normalizedMap[$sourceKey] = $targetKey;
             /* Initiate the target array's keys */
-            $result[$targetKey] = NULL;
+            $result[$targetKey] = null;
         }
 
         /* Run through each element in the Source Array */
         foreach ($sourceArray as $sourceKey => $sourceValue) {
             /* Check if this source key is mapped to a target key, if not it means this source key is not desired */
-            $targetKey = isset($normalizedMap[$sourceKey]) ? $normalizedMap[$sourceKey] : NULL;
+            $targetKey = isset($normalizedMap[$sourceKey]) ? $normalizedMap[$sourceKey] : null;
             if (!is_null($targetKey)) {
                 $result[$targetKey] = $sourceValue;
             }
@@ -149,10 +149,10 @@ class Helper {
      * @author Kevin Ridgway 
      * @return string
      */
-    public static function getVersion() {
-        $rootPath = self::getRootPath();
+    public static function getVersion($rootPath = null) {
+        $rootPath = is_null($rootPath) ? self::getRootPath() : $rootPath;
         $gitHeadFile = $rootPath . DIRECTORY_SEPARATOR . ".git/HEAD";
-        if ($rootPath !== NULL && file_exists($gitHeadFile)) {
+        if ($rootPath !== null && file_exists($gitHeadFile)) {
             $stringfromfile = file($gitHeadFile, FILE_USE_INCLUDE_PATH);
             $firstLine = $stringfromfile[0]; //get the string from the array
             $explodedstring = explode("/", $firstLine, 3); //seperate out by the "/" in the string
@@ -169,19 +169,18 @@ class Helper {
      * @throws \Exception
      */
     public static function setRootPath($path) {
-        if (file_exists($path)) {
+        if (is_dir($path)) {
             self::setObject(self::KEY_GLOBAL_ROOT_PATH, realpath($path));
         } else {
-            throw new \Exception("Unable to set RANEKO ROOT PATH, path '{$path}' is not found");
+            throw new \Exception("Unable to set ROOT PATH, path '{$path}' is not found or not a directory");
         }
     }
 
     /**
      * Get RANEKO ROOT PATH.
-     * @return string|NULL
+     * @return string|null
      */
     public static function getRootPath() {
         return self::getObject(self::KEY_GLOBAL_ROOT_PATH);
     }
-
 }

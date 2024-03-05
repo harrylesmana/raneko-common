@@ -1,6 +1,6 @@
 <?php
 
-require_once "bootstrap.php";
+require_once __DIR__ . DIRECTORY_SEPARATOR . "bootstrap.php";
 
 echo "--- Testing UUID ---" . PHP_EOL;
 $uuid = \Raneko\Common\Helper::uuid4();
@@ -46,3 +46,6 @@ var_dump($targetArray);
 
 echo "--- Testing GIT version ---" . PHP_EOL;
 echo "APP version : " . \Raneko\Common\Helper::getVersion() . PHP_EOL;
+
+echo "--- Testing GIT version (other repository) ---" . PHP_EOL;
+echo "APP version (other) : " . \Raneko\Common\Helper::getVersion("C:/VHOST/source-php/raneko-stg") . PHP_EOL;
