@@ -80,8 +80,7 @@ class Helper {
     public static function setConfigIni($file) {
         if (file_exists($file)) {
             self::setObject(self::KEY_COMMON_CONFIG_INI_FILE, $file);
-            $reader = new \Laminas\Config\Reader\Ini();
-            $data = $reader->fromFile($file);
+            $data = parse_ini_file($file);
             self::setObject(self::KEY_COMMON_CONFIG_INI_DATA, $data);
         } else {
             throw new \Exception("Configuration file '{$file}' does not exist");

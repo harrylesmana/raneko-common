@@ -8,7 +8,6 @@
         }
     ],
     "require": {
-        "laminas/laminas-config": "^3"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"
