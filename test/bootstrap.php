@@ -15,3 +15,6 @@ use \Raneko\Common\Helper as Helper;
 Helper::setConfigIni(__DIR__ . DIRECTORY_SEPARATOR . "app.ini");
 Helper::setRootPath(__DIR__ . "/..");
 Helper::setEnvironment(Helper::getConfig("APP_ENV"));
+Helper::setLogPath(Helper::getConfig("APP_LOG_PATH"));
+Helper::setTempPath(Helper::getConfig("APP_TEMP_PATH"));
+Helper::setProfileOutput(Helper::getLogPath() . DIRECTORY_SEPARATOR . "raneko-common-profile.txt");

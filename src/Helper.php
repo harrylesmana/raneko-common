@@ -12,11 +12,15 @@ class Helper {
     private static $data = array();
 
     const KEY_GLOBAL_ROOT_PATH = "raneko-common_global_root_path";
+    const KEY_GLOBAL_TEMP_PATH = "raneko-common_global_temp_path";
+    const KEY_GLOBAL_LOG_PATH = "raneko-common_global_log_path";
     const KEY_COMMON_CONFIG_INI_FILE = "raneko-common_config_ini_file";
     const KEY_COMMON_CONFIG_INI_DATA = "raneko-common_config_ini_data";
     const KEY_COMMON_ENVIRONMENT = "raneko-common_global_environment";
+    const KEY_COMMON_CONFIG_PROFILE_FILE = "raneko-common_config_profile_file";
     const TRANSFER_ARRAY_OPT_null_IF_NOT_FOUND = "raneko-common_transfer_opt_null_if_not_found";
     const TRANSFER_ARRAY_OPT_REMOVE_IF_NOT_FOUND = "raneko-common_transfer_opt_remove_if_not_found";
+    const COMMON_PERFORMANCE_PROFILE = "raneko-common_performance_profile";
     const DEFAULT_VALUE_VERSION = "0.0.0";
     const DEFAULT_VALUE_ENVIRONMENT = "production";
 
@@ -32,6 +36,15 @@ class Helper {
      */
     protected static function getObject($key, $defaultValue = null) {
         return isset(self::$data[$key]) ? self::$data[$key] : $defaultValue;
+    }
+
+    /**
+     * Unset value from a key.
+     * This method will always be considered successful regardless of whether or not the key is found.
+     * @param string $key
+     */
+    protected static function unsetObject($key) {
+        unset(self::$data[$key]);
     }
 
     /**
@@ -206,7 +219,7 @@ class Helper {
      */
     public static function getEnvironment() {
         $environment = self::getObject(self::KEY_COMMON_ENVIRONMENT);
-        if(is_null($environment)) {
+        if (is_null($environment)) {
             trigger_error("Environment is not set, consider setting it through setEnvironment()", E_USER_WARNING);
         }
         return is_null($environment) ? self::DEFAULT_VALUE_ENVIRONMENT : $environment;
@@ -223,6 +236,113 @@ class Helper {
             return false;
         } else {
             return true;
+        }
+    }
+
+    /**
+     * Set the profiling file.
+     * @param string $file Absolute path to the profiling file.
+     */
+    public static function setProfileOutput($file) {
+        self::setObject(self::KEY_COMMON_CONFIG_PROFILE_FILE, $file);
+        $fileHandler = fopen($file, "a+");
+        if ($fileHandler == false) {
+            throw new \Exception("Failed to prepare Profile File '{$file}'");
+        }
+        fclose($fileHandler);
+    }
+
+    /**
+     * 
+     * @param string $uuid UUID of the profile
+     * @param string $key Key of the profile. Example: "customer::index"
+     * @param string $process Process identifier. Example: "Dummy\Processor"
+     * @return string|null Message persisted into the file.
+     */
+    public static function profile($uuid, $key, $process) {
+        $fullKey = self::COMMON_PERFORMANCE_PROFILE . "_{$uuid}_{$key}_{$process}";
+        $message = null;
+        
+        /* Obtain the start time and unset once obtained to prepare for the next profile */
+        $startTime = self::getObject($fullKey);
+        self::unsetObject($fullKey);
+        
+        if (is_null($startTime)) {
+            /* Start time is not recorded yet, keep track first */
+            $startTime = microtime(true);
+            self::setObject($fullKey, $startTime);
+        } else {
+            /* Start time is already recorded, proceed to output into file */
+            $logFile = self::getObject(self::KEY_COMMON_CONFIG_PROFILE_FILE);
+            if (is_null($logFile)) {
+                /* Preset the profile output file */
+                $logFile = self::getLogPath() . DIRECTORY_SEPARATOR . "raneko-common-profile.txt";
+                self::setProfileOutput($logFile);
+            }
+            $timestamp = new \DateTime();
+            $fileHandler = fopen($logFile, "a+");
+            $message = $uuid . "\t" . $timestamp->format("Y-m-d H:i:s") . "\t" . $key . "\t" . $process . "\t" . (microtime(true) - $startTime) * 1000;
+            fputs($fileHandler, $message . PHP_EOL);
+            fclose($fileHandler);
+        }
+        return $message;
+    }
+
+    /**
+     * Set the path for the log.
+     * @param string $path Absolute path for the log without trailing directory separator.
+     */
+    public static function setLogPath($path) {
+        if (is_dir($path)) {
+            self::setObject(self::KEY_GLOBAL_LOG_PATH, $path);
+        } else {
+            trigger_error("PATH '{$path}' is not valid", E_USER_ERROR);
+        }
+    }
+
+    /**
+     * Get log file path to be used by the application.
+     * It has to be set via .ENV APP_LOG_PATH and the path has to be valid with full access given.
+     * Otherwise it will default to the temporary path as indicated by getTempPath().
+     * @return string
+     * @author Harry <harry.lesmana@msn.com>
+     * @since 2024-02-06
+     */
+    public static function getLogPath() {
+        $path = self::getObject(self::KEY_GLOBAL_LOG_PATH);
+        if (!is_null($path) && is_dir($path)) {
+            return $path;
+        } else {
+            trigger_error("LOG PATH is not set or not a directory '{$path}', LOG PATH will default to TEMP PATH", E_USER_WARNING);
+            return self::getTempPath();
+        }
+    }
+
+    /**
+     * Set the path for the log.
+     * @param string $path Absolute path for the log without trailing directory separator.
+     */
+    public static function setTempPath($path) {
+        if (is_dir($path)) {
+            self::setObject(self::KEY_GLOBAL_TEMP_PATH, realpath($path));
+        } else {
+            trigger_error("PATH '{$path}' is not valid", E_USER_ERROR);
+        }
+    }
+
+    /**
+     * Get temporary file path to be used by the application.
+     * It has to be set via .ENV APP_TEMP_PATH and the path has to be valid with full access given.
+     * Otherwise it will default to the temporary path as set by PHP.
+     * @return string
+     */
+    public static function getTempPath() {
+        $path = self::getObject(self::KEY_GLOBAL_TEMP_PATH);
+        if (!is_null($path) && is_dir($path)) {
+            return $path;
+        } else {
+            trigger_error("TEMP PATH is not set or not a directory '{$path}', TEMP PATH will default to system default", E_USER_WARNING);
+            return sys_get_temp_dir();
         }
     }
 }
