@@ -257,16 +257,17 @@ class Helper {
      * @param string $uuid UUID of the profile
      * @param string $key Key of the profile. Example: "customer::index"
      * @param string $process Process identifier. Example: "Dummy\Processor"
+     * @param array $paramList Parameters passed to this Request.
      * @return string|null Message persisted into the file.
      */
-    public static function profile($uuid, $key, $process) {
+    public static function profile($uuid, $key, $process, $paramList = []) {
         $fullKey = self::COMMON_PERFORMANCE_PROFILE . "_{$uuid}_{$key}_{$process}";
         $message = null;
-        
+
         /* Obtain the start time and unset once obtained to prepare for the next profile */
         $startTime = self::getObject($fullKey);
         self::unsetObject($fullKey);
-        
+
         if (is_null($startTime)) {
             /* Start time is not recorded yet, keep track first */
             $startTime = microtime(true);
@@ -281,7 +282,11 @@ class Helper {
             }
             $timestamp = new \DateTime();
             $fileHandler = fopen($logFile, "a+");
-            $message = $uuid . "\t" . $timestamp->format("Y-m-d H:i:s") . "\t" . $key . "\t" . $process . "\t" . (microtime(true) - $startTime) * 1000;
+            $paramJson =  json_encode($paramList);
+            if($paramJson === false) {
+                $paramJson = "";
+            }
+            $message = $uuid . "\t" . $timestamp->format("Y-m-d H:i:s") . "\t" . $key . "\t" . $process . "\t" . (microtime(true) - $startTime) * 1000 . "\t" . $paramJson;
             fputs($fileHandler, $message . PHP_EOL);
             fclose($fileHandler);
         }
