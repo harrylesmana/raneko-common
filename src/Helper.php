@@ -282,8 +282,8 @@ class Helper {
             }
             $timestamp = new \DateTime();
             $fileHandler = fopen($logFile, "a+");
-            $paramJson =  json_encode($paramList);
-            if($paramJson === false) {
+            $paramJson = json_encode($paramList);
+            if ($paramJson === false) {
                 $paramJson = "";
             }
             $message = $uuid . "\t" . $timestamp->format("Y-m-d H:i:s") . "\t" . $key . "\t" . $process . "\t" . (microtime(true) - $startTime) * 1000 . "\t" . $paramJson;
@@ -348,6 +348,66 @@ class Helper {
         } else {
             trigger_error("TEMP PATH is not set or not a directory '{$path}', TEMP PATH will default to system default", E_USER_WARNING);
             return sys_get_temp_dir();
+        }
+    }
+
+    /**
+     * Get the branch or tag of the requested path.
+     * @param string $path Absolute path including .git folder.
+     * @param bool $isVerbose
+     * @return string|array|null Branch/tag of the path or null if problem is encountered.
+     */
+    public static function getGitCurrentBranch($path, $isVerbose = false) {
+        $errorMessage = null;
+        $gitHead = null;
+        $gitIsTag = false;
+        $gitBranch = null;
+        
+        $result = array();
+
+        try {
+            if (is_dir($path) && is_file($path . '/HEAD')) {
+                $gitHead = trim(file_get_contents(realpath($path . '/HEAD')));
+                $gitCommitMessage = trim(file_get_contents(realpath($path . '/COMMIT_EDITMSG')));
+                if (stripos($gitHead, 'refs') !== false) {
+                    /* This repository is based on branch name */
+                    $gitElementList = explode('/', $gitHead);
+                    $gitBranch = end($gitElementList);
+                } else {
+                    /* This repository is bsaed on tag */
+                    $tagPath = realpath($path . '/refs/tags');
+                    $tagFileList = scandir($tagPath);
+                    foreach ($tagFileList as $tagFile) {
+                        $tagFile = realpath($tagPath . '/' . $tagFile);
+                        if (is_file($tagFile)) {
+                            $gitIsTag = true;
+                            $tagContent = trim(file_get_contents($tagFile));
+                            if ($tagContent == $gitHead) {
+                                $gitBranch = basename($tagFile);
+                            }
+                        }
+                    }
+                }
+            } else {
+                $errorMessage = "Path '{$path}' is not a valid directory";
+            }
+        } catch (\Exception $ex) {
+            $errorMessage = $ex->getMessage();
+        } finally {
+            if($errorMessage !== null) {
+                $gitBranch = $errorMessage;
+            }
+            if ($isVerbose) {
+                $result = [
+                    'branch' => $gitBranch,
+                    'commitCode' => $gitHead,
+                    'commitMessage' => $gitCommitMessage,
+                    'isTag' => $gitIsTag
+                ];
+                return $result;
+            } else {
+                return $gitBranch;
+            }
         }
     }
 }
