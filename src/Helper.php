@@ -362,6 +362,7 @@ class Helper {
         $gitHead = null;
         $gitIsTag = false;
         $gitBranch = null;
+        $gitCommitMessage = null;
         
         $result = array();
 
