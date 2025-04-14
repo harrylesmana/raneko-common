@@ -7,7 +7,8 @@ namespace Raneko\Common;
  * @author Harry Lesmana <harry.lesmana@msn.com>
  * @since 2022-11-17
  */
-class Helper {
+class Helper
+{
 
     private static $data = array();
 
@@ -24,7 +25,8 @@ class Helper {
     const DEFAULT_VALUE_VERSION = "0.0.0";
     const DEFAULT_VALUE_ENVIRONMENT = "production";
 
-    protected static function setObject($key, $value) {
+    protected static function setObject($key, $value)
+    {
         self::$data[$key] = $value;
     }
 
@@ -34,7 +36,8 @@ class Helper {
      * @param mixed $defaultValue
      * @return mixed|null
      */
-    protected static function getObject($key, $defaultValue = null) {
+    protected static function getObject($key, $defaultValue = null)
+    {
         return isset(self::$data[$key]) ? self::$data[$key] : $defaultValue;
     }
 
@@ -43,7 +46,8 @@ class Helper {
      * This method will always be considered successful regardless of whether or not the key is found.
      * @param string $key
      */
-    protected static function unsetObject($key) {
+    protected static function unsetObject($key)
+    {
         unset(self::$data[$key]);
     }
 
@@ -51,7 +55,8 @@ class Helper {
      * UUID v4.
      * @return string
      */
-    public static function uuid4($separator = "") {
+    public static function uuid4($separator = "")
+    {
         $data = openssl_random_pseudo_bytes(16);
 
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40); /* set version to 0010 */
@@ -68,7 +73,8 @@ class Helper {
      * @param string $separator
      * @return string Binary(16) representation of the UUID4.
      */
-    public static function uuid4ToBin($uuid, $separator = "-") {
+    public static function uuid4ToBin($uuid, $separator = "-")
+    {
         return pack("h*", str_replace($separator, '', $uuid));
     }
 
@@ -77,7 +83,8 @@ class Helper {
      * @param string $uuidBin Binary(16) representation of the UUID4.
      * @return string Human readable representation of the UUID4.
      */
-    public static function uuid4FromBin($uuidBin, $separator = "") {
+    public static function uuid4FromBin($uuidBin, $separator = "")
+    {
         $uuidReadable = unpack("h*", $uuidBin);
         $uuidReadable = preg_replace("/([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})/", "$1{$separator}$2{$separator}$3{$separator}$4{$separator}$5", $uuidReadable);
         $uuidReadable = array_merge($uuidReadable);
@@ -90,7 +97,8 @@ class Helper {
      * @param string $file Absolute path to the INI configuration file.
      * @since 2022-09-21
      */
-    public static function setConfigIni($file) {
+    public static function setConfigIni($file)
+    {
         if (file_exists($file)) {
             self::setObject(self::KEY_COMMON_CONFIG_INI_FILE, $file);
             $data = parse_ini_file($file);
@@ -105,7 +113,8 @@ class Helper {
      * @return string|null Absolute path of the INI configuration file.
      * @since 2022-09-21
      */
-    public static function getConfigIni() {
+    public static function getConfigIni()
+    {
         return self::getObject(self::KEY_COMMON_CONFIG_INI_FILE);
     }
 
@@ -115,7 +124,8 @@ class Helper {
      * @param string|null $defaultValue Default value in case the configuration is not found
      * @return mixed
      */
-    public static function getConfig($key = null, $defaultValue = null) {
+    public static function getConfig($key = null, $defaultValue = null)
+    {
         $config = null;
 
         /* INI version */
@@ -136,7 +146,8 @@ class Helper {
      * @param array $mapArray Map of the Source Key is mapped to which Target Key. Non associative array element will be treated as if the Source Key is the same as the Target Key.
      * @param array $option
      */
-    public static function transferArray($sourceArray, $mapArray, $option = array(self::TRANSFER_ARRAY_OPT_null_IF_NOT_FOUND)) {
+    public static function transferArray($sourceArray, $mapArray, $option = array(self::TRANSFER_ARRAY_OPT_null_IF_NOT_FOUND))
+    {
         $result = array();
 
         /* Normalizing the map from mix of associate and non-associative to be fully associative */
@@ -170,7 +181,8 @@ class Helper {
      * @author Kevin Ridgway 
      * @return string
      */
-    public static function getVersion($rootPath = null) {
+    public static function getVersion($rootPath = null)
+    {
         $rootPath = is_null($rootPath) ? self::getRootPath() : $rootPath;
         $gitHeadFile = $rootPath . DIRECTORY_SEPARATOR . ".git/HEAD";
         if ($rootPath !== null && file_exists($gitHeadFile)) {
@@ -189,7 +201,8 @@ class Helper {
      * @param string $path
      * @throws \Exception
      */
-    public static function setRootPath($path) {
+    public static function setRootPath($path)
+    {
         if (is_dir($path)) {
             self::setObject(self::KEY_GLOBAL_ROOT_PATH, realpath($path));
         } else {
@@ -201,7 +214,8 @@ class Helper {
      * Get RANEKO ROOT PATH.
      * @return string|null
      */
-    public static function getRootPath() {
+    public static function getRootPath()
+    {
         return self::getObject(self::KEY_GLOBAL_ROOT_PATH);
     }
 
@@ -209,7 +223,8 @@ class Helper {
      * Set the environment type.
      * @param string $environment dev|development|prod|production
      */
-    public static function setEnvironment($environment) {
+    public static function setEnvironment($environment)
+    {
         self::setObject(self::KEY_COMMON_ENVIRONMENT, $environment);
     }
 
@@ -217,7 +232,8 @@ class Helper {
      * Get the environment type.
      * @return string By default will return "production" if it's not previously set.
      */
-    public static function getEnvironment() {
+    public static function getEnvironment()
+    {
         $environment = self::getObject(self::KEY_COMMON_ENVIRONMENT);
         if (is_null($environment)) {
             trigger_error("Environment is not set, consider setting it through setEnvironment()", E_USER_WARNING);
@@ -230,7 +246,8 @@ class Helper {
      * Only environment "dev" or "development" will result in false.
      * @return bool
      */
-    public static function isEnvironmentProduction() {
+    public static function isEnvironmentProduction()
+    {
         $environment = strtolower(self::getEnvironment());
         if (in_array($environment, array("dev", "development"))) {
             return false;
@@ -243,7 +260,8 @@ class Helper {
      * Set the profiling file.
      * @param string $file Absolute path to the profiling file.
      */
-    public static function setProfileOutput($file) {
+    public static function setProfileOutput($file)
+    {
         self::setObject(self::KEY_COMMON_CONFIG_PROFILE_FILE, $file);
         $fileHandler = fopen($file, "a+");
         if ($fileHandler == false) {
@@ -260,7 +278,8 @@ class Helper {
      * @param array $paramList Parameters passed to this Request.
      * @return string|null Message persisted into the file.
      */
-    public static function profile($uuid, $key, $process, $paramList = []) {
+    public static function profile($uuid, $key, $process, $paramList = [])
+    {
         $fullKey = self::COMMON_PERFORMANCE_PROFILE . "_{$uuid}_{$key}_{$process}";
         $message = null;
 
@@ -297,7 +316,8 @@ class Helper {
      * Set the path for the log.
      * @param string $path Absolute path for the log without trailing directory separator.
      */
-    public static function setLogPath($path) {
+    public static function setLogPath($path)
+    {
         if (is_dir($path)) {
             self::setObject(self::KEY_GLOBAL_LOG_PATH, $path);
         } else {
@@ -313,7 +333,8 @@ class Helper {
      * @author Harry <harry.lesmana@msn.com>
      * @since 2024-02-06
      */
-    public static function getLogPath() {
+    public static function getLogPath()
+    {
         $path = self::getObject(self::KEY_GLOBAL_LOG_PATH);
         if (!is_null($path) && is_dir($path)) {
             return $path;
@@ -327,7 +348,8 @@ class Helper {
      * Set the path for the log.
      * @param string $path Absolute path for the log without trailing directory separator.
      */
-    public static function setTempPath($path) {
+    public static function setTempPath($path)
+    {
         if (is_dir($path)) {
             self::setObject(self::KEY_GLOBAL_TEMP_PATH, realpath($path));
         } else {
@@ -341,7 +363,8 @@ class Helper {
      * Otherwise it will default to the temporary path as set by PHP.
      * @return string
      */
-    public static function getTempPath() {
+    public static function getTempPath()
+    {
         $path = self::getObject(self::KEY_GLOBAL_TEMP_PATH);
         if (!is_null($path) && is_dir($path)) {
             return $path;
@@ -357,58 +380,62 @@ class Helper {
      * @param bool $isVerbose
      * @return string|array|null Branch/tag of the path or null if problem is encountered.
      */
-    public static function getGitCurrentBranch($path, $isVerbose = false) {
-        $errorMessage = null;
+    public static function getGitCurrentBranch($path, $isVerbose = false)
+    {
         $gitHead = null;
+        $gitBranch = 'unknown';
         $gitIsTag = false;
-        $gitBranch = null;
         $gitCommitMessage = null;
-        
-        $result = array();
 
         try {
-            if (is_dir($path) && is_file($path . '/HEAD')) {
-                $gitHead = trim(file_get_contents(realpath($path . '/HEAD')));
-                $gitCommitMessage = trim(file_get_contents(realpath($path . '/COMMIT_EDITMSG')));
+            $headPath = realpath($path . '/HEAD');
+            if ($headPath && is_file($headPath)) {
+                $gitHead = trim(file_get_contents($headPath));
+
                 if (stripos($gitHead, 'refs') !== false) {
-                    /* This repository is based on branch name */
-                    $gitElementList = explode('/', $gitHead);
-                    $gitBranch = end($gitElementList);
+                    // HEAD pointing to branch
+                    $parts = explode('/', $gitHead);
+                    $gitBranch = end($parts);
                 } else {
-                    /* This repository is bsaed on tag */
-                    $tagPath = realpath($path . '/refs/tags');
-                    $tagFileList = scandir($tagPath);
-                    foreach ($tagFileList as $tagFile) {
-                        $tagFile = realpath($tagPath . '/' . $tagFile);
-                        if (is_file($tagFile)) {
-                            $gitIsTag = true;
-                            $tagContent = trim(file_get_contents($tagFile));
-                            if ($tagContent == $gitHead) {
-                                $gitBranch = basename($tagFile);
+                    // Detached HEAD - commit hash or tag
+                    $gitBranch = $gitHead;
+
+                    // search for tags
+                    $tagsPath = $path . '/refs/tags';
+                    if (is_dir($tagsPath)) {
+                        foreach (scandir($tagsPath) as $tagFile) {
+                            $fullTagPath = realpath($tagsPath . '/' . $tagFile);
+                            if (is_file($fullTagPath)) {
+                                $tagContent = trim(file_get_contents($fullTagPath));
+                                if ($tagContent === $gitHead) {
+                                    $gitIsTag = true;
+                                    $gitBranch = $tagFile;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
+
+                // Cek commit message
+                $commitMsgPath = realpath($path . '/COMMIT_EDITMSG');
+                if ($commitMsgPath && is_file($commitMsgPath)) {
+                    $gitCommitMessage = trim(file_get_contents($commitMsgPath));
+                }
             } else {
-                $errorMessage = "Path '{$path}' is not a valid directory";
+                $gitBranch = 'HEAD file not found';
             }
-        } catch (\Exception $ex) {
-            $errorMessage = $ex->getMessage();
-        } finally {
-            if($errorMessage !== null) {
-                $gitBranch = $errorMessage;
-            }
-            if ($isVerbose) {
-                $result = [
-                    'branch' => $gitBranch,
-                    'commitCode' => $gitHead,
-                    'commitMessage' => $gitCommitMessage,
-                    'isTag' => $gitIsTag
-                ];
-                return $result;
-            } else {
-                return $gitBranch;
-            }
+        } catch (\Exception $e) {
+            $gitBranch = 'Git error: ' . $e->getMessage();
         }
+
+        return $isVerbose
+            ? [
+                'branch' => $gitBranch,
+                'commitCode' => $gitHead,
+                'commitMessage' => $gitCommitMessage,
+                'isTag' => $gitIsTag,
+            ]
+            : $gitBranch;
     }
 }
